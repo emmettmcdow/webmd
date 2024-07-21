@@ -4,13 +4,16 @@
 </head>
 <body>
   <div id="target"></div>
+  <svg id="anim-box">
+    <line x1="0" y1="0" x2="300" y2="200" id="caret"/>
+  </svg>
   <script src="app.js"></script>
   <!-- TODO: handle text wrapping -->
   <!-- For measuring size of a character -->
   <span id="p-char">X</span>
   <br>
   <textarea id="textbox" name="textbox" rows="25" cols="50">
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Lorem ipsum dolor sit amet<span id="v-caret">a</span>, consectetur adipiscing elit.
 Sed semper orci sit amet efficitur malesuada.
 Sed ut massa eleifend, semper est lacinia, posuere leo.
 Sed aliquam tortor ac lectus varius rhoncus.

@@ -1,2 +1,27 @@
 /* web safe fonts: https://www.w3schools.com/cssref/css_websafe_fonts.php */
 *{font-family: Courier New;}
+
+#anim-box{
+  position: absolute;
+  top: 0;
+  left: 0;
+
+}
+
+#caret {
+  stroke: red;
+  stroke-width: 1;
+}
+
+
+#v-caret {
+  width:.5em;
+  height:1em;
+  border-top:1px solid currentColor;
+  border-bottom:1px solid currentColor;
+  background:linear-gradient(to right, transparent .23em, currentColor .25em, transparent .27em);
+  display:inline-block;    
+  vertical-align:middle;    
+  margin:0 -.2em;
+  display:none;
+}
