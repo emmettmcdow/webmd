@@ -4,11 +4,36 @@ let p_char_sz = {
 }
 
 function coord_to_index(x, y) {
-  let index = {}
+  let index = {};
   
-  index.x = Math.floor(x / p_char_sz.width)
-  index.y = Math.floor(y / p_char_sz.height)
-  return index
+  index.x = Math.floor(x / p_char_sz.width);
+  index.y = Math.floor(y / p_char_sz.height);
+  return index;
+}
+
+function index_to_offset(index, source_text) {
+  let i = index.x;
+  let j = index.y;
+  let out = 0;
+  let currChar = "";
+
+  while (j > 0) {
+    currChar = source_text.charAt(out);
+    if (currChar === '\n') {
+      j -= 1;
+    }
+    out += 1;
+  }
+  return out + i;
+}
+
+function render_markdown(text) {
+  /* Supports:
+   * - Newlines
+   */
+  let output = text.replaceAll("\n", "<br>");
+  return output
+
 }
 
 window.onload = function() { 
@@ -16,9 +41,11 @@ window.onload = function() {
   const display = document.querySelector("#target");
   const psize_elem = document.querySelector("#p-char");
   
+  display.innerHTML = render_markdown(textarea.value);
+  
   if (textarea.addEventListener) {
     textarea.addEventListener('input', function() {
-      display.innerHTML = textarea.value;
+      display.innerHTML = render_markdown(textarea.value);
     }, false);
   }
 
@@ -27,7 +54,6 @@ window.onload = function() {
 }
 
 onmousemove = function(event) {
-  const textarea = document.querySelector("#textbox");
   let x = event.clientX;
   let y = event.clientY;
   let index = coord_to_index(x, y)
@@ -36,5 +62,19 @@ onmousemove = function(event) {
   document.getElementById("X-in").value = index.x;
   document.getElementById("Y-in").value = index.y;
   
-  // textarea.setSelectionRange(conv, conv)
+}
+
+onmouseup = function(event) {
+  const textarea = document.querySelector("#textbox");
+  let x = event.clientX;
+  let y = event.clientY;
+  let source_markdown = textarea.value
+  console.log("Here")
+
+  let index = coord_to_index(x, y)
+  console.log("Here2")
+  let offset = index_to_offset(index, source_markdown)
+  console.log("Here3")
+
+  textarea.setSelectionRange(offset, offset)
 }
