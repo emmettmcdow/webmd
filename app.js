@@ -7,3 +7,13 @@ window.onload = function() {
     }, false);
   }
 }
+
+onmousemove = function(event) {
+  const textarea = document.querySelector("#textbox");
+  let x = event.clientX;
+  let y = event.clientY;
+  let conv = Math.floor(x / (window.screen.width / 5))
+  document.getElementById("X").value = x;
+  document.getElementById("Y").value = conv;
+  textarea.setSelectionRange(conv, conv)
+}
