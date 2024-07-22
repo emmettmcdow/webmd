@@ -8,6 +8,21 @@ let caret_index = {
   y: 0,
 }
 
+let buffpos = 0;
+
+let buffer = ["Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+"Sed semper orci sit amet efficitur malesuada.",
+"Sed ut massa eleifend, semper est lacinia, posuere leo.",
+"Sed aliquam tortor ac lectus varius rhoncus.",
+"Duis eu enim eros.",
+"Quisque placerat tellus in arcu lobortis commodo.",
+"Integer ultrices quam convallis ex pellentesque ultrices. ",
+"Vivamus molestie efficitur sem id tempor.",
+"Integer ultricies in turpis quis volutpat.",
+"Etiam cursus nulla nec vestibulum elementum.",
+"Vestibulum pharetra, lectus id finibus commodo, lacus tortor vehicula leo, sed porttitor ligula lorem sed nulla.",
+"Nam tellus mauris, blandit vitae nisl non, porttitor consequat est."]
+
 function coord_to_index(x, y) {
   let index = {};
   
@@ -17,57 +32,50 @@ function coord_to_index(x, y) {
 }
 
 function index_to_offset(index, source_text) {
-  let i = index.x;
-  let j = index.y;
-  let out = 0;
+  let offset = 0;
   let currChar = "";
 
-  while (j > 0) {
-    currChar = source_text.charAt(out);
-    if (currChar === '\n') {
-      j -= 1;
-    }
-    out += 1;
+  for (let i = 0; i < index.y; i++) {
+    offset += source_text[i].length
   }
-  return out + i;
+
+  return offset + index.x;
 }
 
 function render_markdown(text) {
   /* Supports:
    * - Newlines
    */
-  let output = text.replaceAll("\n", "<br>");
+  let output = ""
+  text.forEach((line) => {
+    output += line + "<br>"
+  });
   return output
 
 }
 
 function render_caret(index) {
   const caret = document.querySelector("#caret");
-  caret.x1.baseVal.value = (index.x+1) * p_char_sz.width;
+  caret.x1.baseVal.value = (index.x) * p_char_sz.width + 8; // TODO: properly adjust for margins
   caret.y1.baseVal.value = (index.y+0.5) * p_char_sz.height;
-  caret.x2.baseVal.value = (index.x+1) * p_char_sz.width;
+  caret.x2.baseVal.value = (index.x) * p_char_sz.width + 8;
   caret.y2.baseVal.value = (index.y+1.5) * p_char_sz.height;
 }
 
 window.onload = function() { 
-  const textarea = document.querySelector("#textbox");
-  const display = document.querySelector("#target");
   const psize_elem = document.querySelector("#p-char");
   const anim_box = document.querySelector("#anim-box");
+  const display = document.querySelector("#target");
   
-  display.innerHTML = render_markdown(textarea.value);
-  
-  if (textarea.addEventListener) {
-    textarea.addEventListener('input', function() {
-      display.innerHTML = render_markdown(textarea.value);
-    }, false);
-  }
+  display.innerHTML = render_markdown(buffer);
 
   p_char_sz.width = psize_elem.offsetWidth;
   p_char_sz.height = psize_elem.offsetHeight;
 
   anim_box.width = window.screen.width;
   anim_box.height = window.screen.height;
+
+  render_caret(caret_index);
 }
 
 onmousemove = function(event) {
@@ -80,15 +88,40 @@ onmousemove = function(event) {
   document.getElementById("Y-in").value = index.y;
   
 }
+onkeydown = function(event) {
+  event.preventDefault();
+}
 
 // TODO: handle newlines etc
+// TODO: handle overflow in all directions
+// TODO: handle holddowns
 onkeyup = function(event) {
-  if (event.code === 8) {
+  const display = document.querySelector("#target");
+  event.preventDefault();
+  if (event.keyCode === 8) {
     // Backspace
-    // move x backwards
+    buffer[caret_index.y] = buffer[caret_index.y].slice(0, caret_index.x - 1) + buffer[caret_index.y].slice(caret_index.x);
+    display.innerHTML = render_markdown(buffer);
     caret_index.x -= 1;
-  } else {
-    // move x forwards
+  } else if (event.key == "ArrowLeft") {
+    // Left
+    caret_index.x -= 1;
+  } else if (event.key == "ArrowRight") {
+    // Right
+    caret_index.x += 1;
+  } else if (event.key == "ArrowUp") {
+    // Up
+    caret_index.y -= 1;
+  } else if (event.key == "ArrowDown") {
+    // Down
+    caret_index.y += 1;
+  } else if ((event.keyCode >= 65 && event.keyCode <= 90) ||
+             (event.keyCode >= 48 && event.keyCode <= 57) ||
+             (event.keyCode >= 186 && event.keyCode <= 192) ||
+             (event.keyCode >= 219 && event.keyCode <= 222)) {
+    // Normal Characters
+    buffer[caret_index.y] = buffer[caret_index.y].slice(0, caret_index.x) + event.key + buffer[caret_index.y].slice(caret_index.x);
+    display.innerHTML = render_markdown(buffer);
     caret_index.x += 1;
   }
   render_caret(caret_index);
@@ -98,14 +131,11 @@ onmouseup = function(event) {
   const textarea = document.querySelector("#textbox");
   let x = event.clientX;
   let y = event.clientY;
-  let source_markdown = textarea.value;
 
 
   let index = coord_to_index(x, y);
   caret_index = index;
   render_caret(index);
 
-  let offset = index_to_offset(index, source_markdown);
-
-  textarea.setSelectionRange(offset, offset);
+  let offset = index_to_offset(index, buffer);
 }
