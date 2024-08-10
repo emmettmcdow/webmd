@@ -23,6 +23,7 @@ let buffer = ["Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
 "Vestibulum pharetra, lectus id finibus commodo, lacus tortor vehicula leo, sed porttitor ligula lorem sed nulla.",
 "Nam tellus mauris, blandit vitae nisl non, porttitor consequat est."]
 
+//***************************************************************************************** Utility
 function coord_to_index(x, y) {
   let index = {};
   
@@ -42,6 +43,7 @@ function index_to_offset(index, source_text) {
   return offset + index.x;
 }
 
+//***************************************************************************** Rendering functions
 function render_markdown(text) {
   /* Supports:
    * - Newlines
@@ -62,6 +64,7 @@ function render_caret(index) {
   caret.y2.baseVal.value = (index.y+1.5) * p_char_sz.height;
 }
 
+//****************************************************************************************** Events
 window.onload = function() { 
   const psize_elem = document.querySelector("#p-char");
   const anim_box = document.querySelector("#anim-box");
@@ -78,16 +81,6 @@ window.onload = function() {
   render_caret(caret_index);
 }
 
-onmousemove = function(event) {
-  let x = event.clientX;
-  let y = event.clientY;
-  let index = coord_to_index(x, y)
-  document.getElementById("X").value = x;
-  document.getElementById("Y").value = y;
-  document.getElementById("X-in").value = index.x;
-  document.getElementById("Y-in").value = index.y;
-  
-}
 onkeydown = function(event) {
   event.preventDefault();
 }
@@ -127,6 +120,7 @@ onkeyup = function(event) {
   render_caret(caret_index);
 }
 
+//*************************************************************************** Not Important for now
 onmouseup = function(event) {
   const textarea = document.querySelector("#textbox");
   let x = event.clientX;
@@ -138,4 +132,14 @@ onmouseup = function(event) {
   render_caret(index);
 
   let offset = index_to_offset(index, buffer);
+}
+onmousemove = function(event) {
+  let x = event.clientX;
+  let y = event.clientY;
+  let index = coord_to_index(x, y)
+  document.getElementById("X").value = x;
+  document.getElementById("Y").value = y;
+  document.getElementById("X-in").value = index.x;
+  document.getElementById("Y-in").value = index.y;
+  
 }
