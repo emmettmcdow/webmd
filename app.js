@@ -44,24 +44,30 @@ function index_to_offset(index, source_text) {
 }
 
 //***************************************************************************** Rendering functions
+const caret_probe = "<span id=\"probe\"\></span>"
 function render_markdown(text) {
   /* Supports:
    * - Newlines
    */
   let output = ""
-  text.forEach((line) => {
+  text.forEach((line, y) => {
+    if (y == caret_index.y) {
+      line = line.substring(0, caret_index.x) + caret_probe + line.substring(caret_index.x)
+    }
     output += line + "<br>"
   });
   return output
 
 }
 
-function render_caret(index) {
+function render_caret() {
   const caret = document.querySelector("#caret");
-  caret.x1.baseVal.value = (index.x) * p_char_sz.width + 8; // TODO: properly adjust for margins
-  caret.y1.baseVal.value = (index.y+0.5) * p_char_sz.height;
-  caret.x2.baseVal.value = (index.x) * p_char_sz.width + 8;
-  caret.y2.baseVal.value = (index.y+1.5) * p_char_sz.height;
+  const probe = document.querySelector("#probe");
+  var offsets = probe.getBoundingClientRect();
+  caret.x1.baseVal.value = offsets.left
+  caret.y1.baseVal.value = offsets.top
+  caret.x2.baseVal.value = offsets.left
+  caret.y2.baseVal.value = offsets.top + p_char_sz.height;
 }
 
 //****************************************************************************************** Events
@@ -78,7 +84,7 @@ window.onload = function() {
   anim_box.width = window.screen.width;
   anim_box.height = window.screen.height;
 
-  render_caret(caret_index);
+  render_caret();
 }
 
 onkeydown = function(event) {
@@ -94,7 +100,6 @@ onkeyup = function(event) {
   if (event.keyCode === 8) {
     // Backspace
     buffer[caret_index.y] = buffer[caret_index.y].slice(0, caret_index.x - 1) + buffer[caret_index.y].slice(caret_index.x);
-    display.innerHTML = render_markdown(buffer);
     caret_index.x -= 1;
   } else if (event.key == "ArrowLeft") {
     // Left
@@ -114,10 +119,10 @@ onkeyup = function(event) {
              (event.keyCode >= 219 && event.keyCode <= 222)) {
     // Normal Characters
     buffer[caret_index.y] = buffer[caret_index.y].slice(0, caret_index.x) + event.key + buffer[caret_index.y].slice(caret_index.x);
-    display.innerHTML = render_markdown(buffer);
     caret_index.x += 1;
   }
-  render_caret(caret_index);
+  display.innerHTML = render_markdown(buffer);
+  render_caret();
 }
 
 //*************************************************************************** Not Important for now
@@ -129,7 +134,7 @@ onmouseup = function(event) {
 
   let index = coord_to_index(x, y);
   caret_index = index;
-  render_caret(index);
+  render_caret();
 
   let offset = index_to_offset(index, buffer);
 }
