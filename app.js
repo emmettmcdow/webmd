@@ -31,15 +31,36 @@ function render_markdown(text) {
    */
   let output = "";
   text.forEach((line, y) => {
-    if (y == caret_index.y) {
+    let selected = y == caret_index.y;
+    // Place caret probe
+    if (selected) {
       line =
         line.substring(0, caret_index.x) +
         caret_probe +
         line.substring(caret_index.x);
     }
+    // Headers
+    let n_pounds = 0;
+    for (n_pounds = 0; n_pounds < line.length; n_pounds++) {
+      if (line[n_pounds] != "#") {
+        break;
+      }
+    }
+    if (n_pounds > 0 && n_pounds < 7) {
+      line = render_h_line(line, n_pounds, selected);
+    }
+
     output += line + "<br>";
   });
   return output;
+}
+
+function render_h_line(line, n_pounds, selected) {
+  if (!selected) {
+    line = line.substring(n_pounds);
+  }
+  line = `<h${n_pounds}>${line}</h${n_pounds}>`;
+  return line;
 }
 
 function move_caret() {
@@ -81,10 +102,19 @@ onkeyup = function (event) {
   event.preventDefault();
   if (event.keyCode === 8) {
     // Backspace
-    buffer[caret_index.y] =
-      buffer[caret_index.y].slice(0, caret_index.x - 1) +
-      buffer[caret_index.y].slice(caret_index.x);
-    caret_index.x -= 1;
+    if (caret_index.x == 0) {
+      if (caret_index.y != 0) {
+        caret_index.y -= 1;
+        caret_index.x = buffer[caret_index.y].length;
+        buffer[caret_index.y] += buffer[caret_index.y + 1];
+        buffer.splice(caret_index.y + 1, 1);
+      }
+    } else {
+      buffer[caret_index.y] =
+        buffer[caret_index.y].slice(0, caret_index.x - 1) +
+        buffer[caret_index.y].slice(caret_index.x);
+      caret_index.x -= 1;
+    }
   } else if (event.key == "ArrowLeft") {
     // Left
     caret_index.x -= 1;
@@ -97,11 +127,18 @@ onkeyup = function (event) {
   } else if (event.key == "ArrowDown") {
     // Down
     caret_index.y += 1;
+  } else if (event.key == "Enter") {
+    let remaining_string = buffer[caret_index.y].substring(caret_index.x);
+    buffer[caret_index.y] = buffer[caret_index.y].substring(0, caret_index.x);
+    buffer.splice(caret_index.y + 1, 0, remaining_string);
+    caret_index.y += 1;
+    caret_index.x = 0;
   } else if (
     (event.keyCode >= 65 && event.keyCode <= 90) ||
     (event.keyCode >= 48 && event.keyCode <= 57) ||
     (event.keyCode >= 186 && event.keyCode <= 192) ||
-    (event.keyCode >= 219 && event.keyCode <= 222)
+    (event.keyCode >= 219 && event.keyCode <= 222) ||
+    event.keyCode == 32
   ) {
     // Normal Characters
     buffer[caret_index.y] =
