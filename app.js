@@ -91,13 +91,6 @@ window.onload = function () {
 };
 
 onkeydown = function (event) {
-  event.preventDefault();
-};
-
-// TODO: handle newlines etc
-// TODO: handle overflow in all directions
-// TODO: handle holddowns
-onkeyup = function (event) {
   const display = document.querySelector("#target");
   event.preventDefault();
   if (event.keyCode === 8) {
