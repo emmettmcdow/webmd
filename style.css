@@ -12,10 +12,23 @@
 }
 
 #caret {
-  stroke: red;
+  stroke: black;
   stroke-width: 1;
+  animation: blinker 1s linear infinite;
 }
 
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+#target {
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 6.2%;
+  width: 62%;
+}
 
 #v-caret {
   width: .5em;
@@ -27,6 +40,10 @@
   vertical-align: middle;
   margin: 0 -.2em;
   display: none;
+}
+
+#p-char {
+  color: white;
 }
 
 .quote {

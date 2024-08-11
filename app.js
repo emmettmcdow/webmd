@@ -8,20 +8,22 @@ let caret_index = {
   y: 0,
 };
 
-let buffer = [
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-  "Sed semper orci sit amet efficitur malesuada.",
-  "Sed ut massa eleifend, semper est lacinia, posuere leo.",
-  "Sed aliquam tortor ac lectus varius rhoncus.",
-  "Duis eu enim eros.",
-  "Quisque placerat tellus in arcu lobortis commodo.",
-  "Integer ultrices quam convallis ex pellentesque ultrices. ",
-  "Vivamus molestie efficitur sem id tempor.",
-  "Integer ultricies in turpis quis volutpat.",
-  "Etiam cursus nulla nec vestibulum elementum.",
-  "Vestibulum pharetra, lectus id finibus commodo, lacus tortor vehicula leo, sed porttitor ligula lorem sed nulla.",
-  "Nam tellus mauris, blandit vitae nisl non, porttitor consequat est.",
-];
+// let buffer = [
+//   "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+//   "Sed semper orci sit amet efficitur malesuada.",
+//   "Sed ut massa eleifend, semper est lacinia, posuere leo.",
+//   "Sed aliquam tortor ac lectus varius rhoncus.",
+//   "Duis eu enim eros.",
+//   "Quisque placerat tellus in arcu lobortis commodo.",
+//   "Integer ultrices quam convallis ex pellentesque ultrices. ",
+//   "Vivamus molestie efficitur sem id tempor.",
+//   "Integer ultricies in turpis quis volutpat.",
+//   "Etiam cursus nulla nec vestibulum elementum.",
+//   "Vestibulum pharetra, lectus id finibus commodo, lacus tortor vehicula leo, sed porttitor ligula lorem sed nulla.",
+//   "Nam tellus mauris, blandit vitae nisl non, porttitor consequat est.",
+// ];
+
+let buffer = [""];
 
 const MAX_QUOTES = 6;
 const MAX_HEADERS = 6;
@@ -177,8 +179,18 @@ onkeydown = function (event) {
     let extra_offset = 0;
     // Carry over the quote if we are quoted
     if (buffer[caret_index.y][0] == ">") {
-      remaining_string = ">";
-      extra_offset += 1;
+      // TODO: handle multiple '>'s
+      // But only if there is non-'>' content
+      if (buffer[caret_index.y].length > 1) {
+        remaining_string = ">";
+        extra_offset += 1;
+      } else {
+        // TODO: make this block un-fugly
+        buffer[caret_index.y] = "";
+        display.innerHTML = render_markdown(buffer);
+        move_caret();
+        return;
+      }
     }
     remaining_string += buffer[caret_index.y].substring(caret_index.x);
     buffer[caret_index.y] = buffer[caret_index.y].substring(0, caret_index.x);
