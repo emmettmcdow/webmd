@@ -23,6 +23,9 @@ let buffer = [
   "Nam tellus mauris, blandit vitae nisl non, porttitor consequat est.",
 ];
 
+const MAX_QUOTES = 6;
+const MAX_HEADERS = 6;
+
 //***************************************************************************** Rendering functions
 const caret_probe = '<span id="probe"></span>';
 function render_markdown(text) {
@@ -31,28 +34,53 @@ function render_markdown(text) {
    */
   let output = "";
   text.forEach((line, y) => {
+    let modline = line;
     let selected = y == caret_index.y;
     // Place caret probe
     if (selected) {
-      line =
+      modline =
         line.substring(0, caret_index.x) +
         caret_probe +
         line.substring(caret_index.x);
     }
     // Headers
+    // We want to count #'s in the 'line' variable, but actually render using the 'modline' variable
     let n_pounds = 0;
     for (n_pounds = 0; n_pounds < line.length; n_pounds++) {
       if (line[n_pounds] != "#") {
         break;
       }
     }
-    if (n_pounds > 0 && n_pounds < 7) {
-      line = render_h_line(line, n_pounds, selected);
+    if (n_pounds > 0 && n_pounds <= MAX_HEADERS) {
+      modline = render_h_line(modline, n_pounds, selected);
     }
 
-    output += line + "<br>";
+    // Quotes
+    // We want to count >'s in the 'line' variable, but actually render using the 'modline' variable
+    let n_quotes = 0;
+    for (n_quotes = 0; n_quotes < line.length; n_quotes++) {
+      if (line[n_quotes] != ">") {
+        break;
+      }
+    }
+    if (n_quotes > 0 && n_quotes <= MAX_QUOTES) {
+      modline = render_quote(modline, n_quotes, selected);
+    }
+    output += modline;
+    if (n_quotes == 0 && n_pounds == 0) {
+      output += "<br>";
+    }
   });
   return output;
+}
+
+function render_quote(line, n_quotes, selected) {
+  if (!selected) {
+    line = line.substring(n_quotes);
+  }
+  // Only support one level quote for now
+  line = `<div class="quote">${line}</div>`;
+  return line;
 }
 
 function render_h_line(line, n_pounds, selected) {
@@ -110,22 +138,53 @@ onkeydown = function (event) {
     }
   } else if (event.key == "ArrowLeft") {
     // Left
-    caret_index.x -= 1;
+    if (caret_index.x == 0) {
+      if (caret_index.y != 0) {
+        caret_index.y -= 1;
+        caret_index.x = buffer[caret_index.y].length;
+      }
+    } else {
+      caret_index.x -= 1;
+    }
   } else if (event.key == "ArrowRight") {
     // Right
-    caret_index.x += 1;
+    if (caret_index.x == buffer[caret_index.y].length) {
+      if (caret_index.y != buffer.length - 1) {
+        caret_index.y += 1;
+        caret_index.x = 0;
+      }
+    } else {
+      caret_index.x += 1;
+    }
   } else if (event.key == "ArrowUp") {
     // Up
-    caret_index.y -= 1;
+    if (caret_index.y != 0) {
+      caret_index.y -= 1;
+    }
+    if (caret_index.x > buffer[caret_index.y].length) {
+      caret_index.x = buffer[caret_index.y].length;
+    }
   } else if (event.key == "ArrowDown") {
     // Down
-    caret_index.y += 1;
+    if (caret_index.y < buffer.length - 1) {
+      caret_index.y += 1;
+    }
+    if (caret_index.x > buffer[caret_index.y].length) {
+      caret_index.x = buffer[caret_index.y].length;
+    }
   } else if (event.key == "Enter") {
-    let remaining_string = buffer[caret_index.y].substring(caret_index.x);
+    let remaining_string = "";
+    let extra_offset = 0;
+    // Carry over the quote if we are quoted
+    if (buffer[caret_index.y][0] == ">") {
+      remaining_string = ">";
+      extra_offset += 1;
+    }
+    remaining_string += buffer[caret_index.y].substring(caret_index.x);
     buffer[caret_index.y] = buffer[caret_index.y].substring(0, caret_index.x);
     buffer.splice(caret_index.y + 1, 0, remaining_string);
     caret_index.y += 1;
-    caret_index.x = 0;
+    caret_index.x = extra_offset;
   } else if (
     (event.keyCode >= 65 && event.keyCode <= 90) ||
     (event.keyCode >= 48 && event.keyCode <= 57) ||
